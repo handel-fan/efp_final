@@ -34,6 +34,32 @@ API calls to create MLIR IR objects.
 Reference:
 https://github.com/google/mlir-hs
 
+\section{LLVM MLIR IR objects}
+This section briefly looks at what MLIR IR objects look like, and why they are important.
+In LLVM, MLIR is a lower phase between high-level source code and LLVMIR:
+
+\noindent Source Code (Python, C, C++, etc.) $\to$ MLIR $\to$ LLVMIR $\to$ Machine code
+
+\noindent Some variants/dialects of MLIR:
+
+\begin{enumerate}
+    \item arith
+    \item func
+    \item linalg
+\end{enumerate}
+
+\noindent An example in arith:
+\begin{verbatim}
+
+module {
+  func.func @add_example(%a: i32, %b: i32) -> i32 {
+    %0 = arith.addi %a, %b : i32
+    return %0 : i32
+  }
+}
+
+\end{verbatim}
+
 \section{Motivation}
 The motivation for this project is as follows:
 
@@ -49,10 +75,11 @@ function annotations and library calls.
 A more concrete explanation of this approach is:
 This project will utilize an existing Python AST library (One which takes in Python code and outputs a Python AST).
 Given an AST, I'd like to walk it, then call the appropriate mlir-hs functions to
-create MLIR-IR objects. Finally, I'll print the ensuing IR. The code I'm writing will call mlir-hs itself.
+create MLIR-IR objects. (linalg or arith.) 
+Finally, I'll print the ensuing IR. The code I'm writing will call mlir-hs itself.
 
 \section{Scope/Conclusion}
-I've scoped this project to act on basic vector ops - multiplication, addition, etc.
+I've scoped this project to act on basic vector ops in native python lists - multiplication, addition, etc.
 The code will essentially be a mapping between those ops and the appropriate MLIR IR objects.
 Furthermore, the project will not focus on execution correctness or optimization.
 Some ways to expand this scope are to act on tensors, actually have it run and test optimization,
