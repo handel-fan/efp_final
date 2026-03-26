@@ -45,16 +45,18 @@ annotations and library calls.
 
 \section{Explanation}
 A more concrete explanation of this approach is:
-I'd like to utilize an existing Python AST library (One which takes in Python code and outputs a Python AST)
-and 
+I'd like to utilize an existing Python AST library (One which takes in Python code and outputs a Python AST).
+Given an AST, I'd like to walk it, then call the appropriate `mlir-hs` functions to
+create MLIR-IR objects. Finally, I'll print the ensuing IR. 
 
+The code I'm writing will call `mlir-hs` itself.
 
-
-\section{Scope}
-
-
-
-\section{Conclusion}
+\section{Scope/Conclusion}
+I've scoped this project to act on basic vector ops - multiplication, addition, etc.
+The code will essentially be a mapping between those ops and the appropriate MLIR IR ops.
+Furthermore, I'm not ensuring the code runs, or is optimized in any way.
+Some ways to expand this scope are to act on tensors, actually have it run and test optimization,
+etc.
 
 
 
