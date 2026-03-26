@@ -58,16 +58,16 @@ module {
 }
 \end{verbatim}
 
-These representations allow for machine-agnostic standardized analyses and optimization passes.
+\noindent These representations allow for machine-agnostic standardized analyses and optimization passes.
 
-Consider optimizations such as constant folding, 1st order algebraic simplification, and
+\noindent Consider optimizations such as constant folding, 1st order algebraic simplification, and
 dead code elimination. Those are operable on a GENERAL level. Instead of having to
 understand the AST structures (or bytecode) of some compiler frontend, we can simply operate on them in MLIR.
 
 \section{Motivation}
 The motivation for this project is as follows:
 
-Using Haskell to reason about Python AST objects allows us to leverage
+\noindent Using Haskell to reason about Python AST objects allows us to leverage
 Haskell's early type safety, complex logic expressivity, and reliability to
 directly compile Python code.
 We can directly work with Python AST nodes, rather than having to go through
@@ -78,9 +78,9 @@ function annotations and library calls.
 \section{Explanation}
 A more concrete explanation of this approach is:
 This project will utilize an existing Python AST library (One which takes in Python code and outputs a Python AST).
-Given an AST, I'd like to walk it, then call the appropriate mlir-hs functions to
+Given an AST, our code will walk it, then call the appropriate mlir-hs functions to
 create MLIR-IR objects. (linalg or arith.) 
-Finally, I'll print the ensuing IR. The code I'm writing will call mlir-hs itself.
+Finally, the code will print the ensuing IR.
 
 \section{Scope/Conclusion}
 I've scoped this project to act on basic vector ops in native python lists - multiplication, addition, etc.
@@ -88,7 +88,5 @@ The code will essentially be a mapping between those ops and the appropriate MLI
 Furthermore, the project will not focus on execution correctness or optimization.
 Some ways to expand this scope are to act on tensors, actually have it run and test optimization,
 etc.
-
-
 
 \end{document}
