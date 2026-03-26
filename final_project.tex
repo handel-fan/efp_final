@@ -1,0 +1,61 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{hyperref}
+
+\setstretch{1.1}
+
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE Final Project Proposal}\\[1.5em]
+
+    \begin{tabular}{rl}
+        \textbf{Class: COMP 5300} & \\[0.5em]
+        \textbf{Name:Jegannarayanan Sivakasiulaganathan} & \\[0.5em]
+        \textbf{Student ID:02197006} & \\[0.5em]
+        \textbf{Email:Jegannarayanan\_Sivakasiulaganathan@student.uml.edu} &
+    \end{tabular}
+\end{center}
+
+\vspace{2em}
+
+\section{Overview}
+My final project proposal is to create a Python AST to LLVM MLIR IR Object
+pipeline. The idea is to leverage the library `mlir-hs`, which consists of
+API calls to create MLIR IR objects.
+Reference:
+https://github.com/google/mlir-hs
+
+\section{Motivation}
+Motivations for this kind of an endeavor are grounded in the following:
+1. Using Haskell to reason about Python AST objects allows us to leverage
+Haskell's early type safety, complex logic expressivity, and reliability to
+directly compile Python code.
+2. We can directly work with Python AST nodes, rather than having to go through
+CPython/other LLVM workflows. Some benefits of this: Note we can operate directly on
+annotations and library calls.
+
+\section{Explanation}
+A more concrete explanation of this approach is:
+I'd like to utilize an existing Python AST library (One which takes in Python code and outputs a Python AST)
+and 
+
+
+
+\section{Scope}
+
+
+
+\section{Conclusion}
+
+
+
+\end{document}
