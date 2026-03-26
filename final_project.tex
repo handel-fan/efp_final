@@ -36,7 +36,7 @@ https://github.com/google/mlir-hs
 
 \section{LLVM MLIR IR objects}
 This section briefly looks at what MLIR IR objects look like, and why they are important.
-In LLVM, MLIR is a lower phase between high-level source code and LLVMIR:
+In LLVM, MLIR is a intermediate representation between high-level source code and LLVMIR:
 
 \noindent Source Code (Python, C, C++, etc.) $\to$ MLIR $\to$ LLVMIR $\to$ Machine code
 
@@ -50,15 +50,19 @@ In LLVM, MLIR is a lower phase between high-level source code and LLVMIR:
 
 \noindent An example in arith:
 \begin{verbatim}
-
 module {
   func.func @add_example(%a: i32, %b: i32) -> i32 {
     %0 = arith.addi %a, %b : i32
     return %0 : i32
   }
 }
-
 \end{verbatim}
+
+These representations allow for machine-agnostic standardized analyses and optimization passes.
+
+Consider optimizations such as constant folding, 1st order algebraic simplification, and
+dead code elimination. Those are operable on a GENERAL level. Instead of having to
+understand the AST structures (or bytecode) of some compiler frontend, we can simply operate on them in MLIR.
 
 \section{Motivation}
 The motivation for this project is as follows:
