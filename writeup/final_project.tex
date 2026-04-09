@@ -1,0 +1,92 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{hyperref}
+
+\setstretch{1.1}
+
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE Final Project Proposal}\\[1.5em]
+\end{center}
+
+\begin{tabular}{@{}ll@{}}
+    \textbf{Class:} & COMP 5300 \\[0.5em]
+    \textbf{Name:} & Jegannarayanan Sivakasiulaganathan \\[0.5em]
+    \textbf{Student ID:} & 02197006 \\[0.5em]
+    \textbf{Email:} & Jegannarayanan\_Sivakasiulaganathan@student.uml.edu
+\end{tabular}
+
+\vspace{2em}
+
+\section{Overview}
+My final project proposal is to create a Python AST to LLVM MLIR IR Object
+pipeline. The idea is to leverage the library mlir-hs, which consists of
+API calls to create MLIR IR objects.
+Reference:
+https://github.com/google/mlir-hs
+
+\section{LLVM MLIR IR objects}
+This section briefly looks at what MLIR IR objects look like, and why they are important.
+In LLVM, MLIR is a intermediate representation between high-level source code and LLVMIR:
+
+\noindent Source Code (Python, C, C++, etc.) $\to$ MLIR $\to$ LLVMIR $\to$ Machine code
+
+\noindent Some variants/dialects of MLIR:
+
+\begin{enumerate}
+    \item arith
+    \item func
+    \item linalg
+\end{enumerate}
+
+\noindent An example in arith:
+\begin{verbatim}
+module {
+  func.func @add_example(%a: i32, %b: i32) -> i32 {
+    %0 = arith.addi %a, %b : i32
+    return %0 : i32
+  }
+}
+\end{verbatim}
+
+\noindent These representations allow for machine-agnostic standardized analyses and optimization passes.
+
+\noindent Consider optimizations such as constant folding, 1st order algebraic simplification, and
+dead code elimination. Those are operable on a GENERAL level. Instead of having to
+understand the AST structures (or bytecode) of some compiler frontend, we can simply operate on them in MLIR.
+
+\section{Motivation}
+The motivation for this project is as follows:
+
+\noindent Using Haskell to reason about Python AST objects allows us to leverage
+Haskell's early type safety, complex logic expressivity, and reliability to
+directly compile Python code.
+We can directly work with Python AST nodes, rather than having to go through
+CPython/other LLVM workflows. This allows direct lowering from high level syntax (Python)
+to MLIR. Note we can operate directly on
+function annotations and library calls.
+
+\section{Explanation}
+A more concrete explanation of this approach is:
+This project will utilize an existing Python AST library (One which takes in Python code and outputs a Python AST).
+Given an AST, our code will walk it, then call the appropriate mlir-hs functions to
+create MLIR-IR objects. (linalg or arith.) 
+Finally, the code will print the ensuing IR.
+
+\section{Scope/Conclusion}
+I've scoped this project to act on basic vector ops in native python lists - multiplication, addition, etc.
+The code will essentially be a mapping between those ops and the appropriate MLIR IR objects.
+Furthermore, the project will not focus on execution correctness or optimization.
+Some ways to expand this scope are to act on tensors, actually have it run and test optimization,
+etc.
+
+\end{document}
