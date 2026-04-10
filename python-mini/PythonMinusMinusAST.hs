@@ -44,6 +44,7 @@ data Module annot = Module [Statement annot]
   deriving (Eq, Ord, Show, Typeable, Data, Functor, Foldable, Traversable)
 
 -- | A block of statements.
+-- TODO: Remove?
 type Suite annot = [Statement annot]
 
 -- | Function parameter.
