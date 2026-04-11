@@ -3,7 +3,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveTraversable #-}
 
-module PythonMinusMinusAST (
+module PMMAST (
     Annotated(..)
   , Module(..)
   , Suite
