@@ -10,13 +10,19 @@ module ConvertAST (
 
 import qualified Language.Python.Common.AST as Py
 import qualified PMMAST as PMM
+-- This is the AST converter between the AST defined in
+-- language-python and my AST defined for PMM (PythonMinusMinus)
 
+-- We get Left if anything fails, along with the error message.
+-- I didn't implement something which would carry several error
+-- messages in a cohesive stack to limit project scope.
 convertModule :: Py.Module a -> Either String (PMM.Module a)
 convertModule (Py.Module stmts) = PMM.Module <$> mapM convertStmt stmts
 
 convertStmt :: Py.Statement a -> Either String (PMM.Statement a)
 convertStmt stmt =
-  case stmt of
+    -- We only pattern match the fields we care about and assume the input is well-formed.
+    case stmt of
     Py.Fun
       { Py.fun_name = name
       , Py.fun_args = params
@@ -27,7 +33,7 @@ convertStmt stmt =
           params' <- mapM convertParam params
           retTy' <- convertTypeExpr retTy
           body' <- mapM convertStmt body
-          pure PMM.FunDef
+          Right PMM.FunDef
             { PMM.fun_name = convertIdent name
             , PMM.fun_params = params'
             , PMM.fun_return_type = retTy'
@@ -35,6 +41,7 @@ convertStmt stmt =
             , PMM.stmt_annot = ann
             }
 
+    -- We will enforce that functions have to have return type annotations
     Py.Fun { Py.fun_result_annotation = Nothing } ->
       Left "function is missing a return type annotation"
 
@@ -44,25 +51,27 @@ convertStmt stmt =
       , Py.ann_assign_expr = Just expr
       , Py.stmt_annot = ann
       } -> do
-          name <- expectVarIdent "annotated assignment target must be a variable" target
+          name <- expectVarIdent target
           ty <- convertTypeExpr tyExpr
           expr' <- convertExpr expr
-          pure PMM.AnnAssign
+          Right PMM.AnnAssign
             { PMM.ann_assign_name = name
             , PMM.ann_assign_type = ty
             , PMM.ann_assign_expr = expr'
             , PMM.stmt_annot = ann
             }
 
+    -- Disallow non-annotated assignments
     Py.AnnotatedAssign { Py.ann_assign_expr = Nothing } ->
-      Left "annotated assignment must have an initializer"
+      Left "annotated assignment invalid - must do annotated assignments"
 
     Py.Assign
+    -- We don't multi-assigns in our AST but the host AST does, so we have to convert
       { Py.assign_to = [target]
       , Py.assign_expr = expr
       , Py.stmt_annot = ann
       } -> do
-          name <- expectVarIdent "assignment target must be a variable" target
+          name <- expectVarIdent target
           expr' <- convertExpr expr
           pure PMM.Assign
             { PMM.assign_name = name
@@ -78,7 +87,7 @@ convertStmt stmt =
       , Py.cond_else = elseBody
       , Py.stmt_annot = ann
       } -> do
-          guards' <- mapM convertGuard guards
+          guards' <- mapM convertBranch guards
           elseBody' <- mapM convertStmt elseBody
           pure PMM.If
             { PMM.if_guards = guards'
@@ -93,7 +102,7 @@ convertStmt stmt =
       , Py.for_else = []
       , Py.stmt_annot = ann
       } -> do
-          target' <- expectVarIdent "for-loop target must be a variable" target
+          target' <- expectVarIdent target
           range' <- convertRange gen
           body' <- mapM convertStmt body
           pure PMM.For
@@ -134,23 +143,26 @@ convertStmt stmt =
 
     _ -> Left "unsupported statement in PythonMLIR--"
 
-convertGuard :: (Py.Expr a, Py.Suite a) -> Either String (PMM.Condition a, PMM.Suite a)
-convertGuard (cond, body) = do
+convertBranch :: (Py.Expr a, Py.Suite a) -> Either String (PMM.Condition a, PMM.Suite a)
+convertBranch (cond, body) = do
   cond' <- convertCondition cond
   body' <- mapM convertStmt body
-  pure (cond', body')
+  Right (cond', body')
 
 convertParam :: Py.Parameter a -> Either String (PMM.Parameter a)
 convertParam param =
   case param of
     Py.Param
       { Py.param_name = name
+      -- Even though PMM's type annotation is not optional,
+      -- the type annotation in the host AST is optional,
+      -- so we have to treat it as such using Just.
       , Py.param_py_annotation = Just tyExpr
       , Py.param_default = Nothing
       , Py.param_annot = ann
       } -> do
           ty <- convertTypeExpr tyExpr
-          pure PMM.Parameter
+          Right PMM.Parameter
             { PMM.param_name = convertIdent name
             , PMM.param_type = ty
             , PMM.param_annot = ann
@@ -159,6 +171,7 @@ convertParam param =
     Py.Param { Py.param_py_annotation = Nothing } ->
       Left "parameter is missing a type annotation"
 
+    -- Just here is to match on a param default value.
     Py.Param { Py.param_default = Just _ } ->
       Left "default parameter values are not supported in PythonMinusMinus"
 
@@ -168,20 +181,20 @@ convertExpr :: Py.Expr a -> Either String (PMM.Expr a)
 convertExpr expr =
   case expr of
     Py.Var { Py.var_ident = ident, Py.expr_annot = ann } ->
-      pure PMM.Var
+      Right PMM.Var
         { PMM.var_ident = convertIdent ident
         , PMM.expr_annot = ann
         }
 
     Py.Int { Py.int_value = value, Py.expr_annot = ann } ->
-      pure PMM.IntLit
+      Right PMM.IntLit
         { PMM.int_value = value
         , PMM.expr_annot = ann
         }
 
     Py.Paren { Py.paren_expr = inner, Py.expr_annot = ann } -> do
       inner' <- convertExpr inner
-      pure PMM.Paren
+      Right PMM.Paren
         { PMM.paren_expr = inner'
         , PMM.expr_annot = ann
         }
@@ -191,7 +204,11 @@ convertExpr expr =
       , Py.left_op_arg = lhs
       , Py.right_op_arg = rhs
       , Py.expr_annot = ann
-      } -> do
+      } 
+      | isCompareOp op ->
+        Left "comparison operators are not permitted as expressions, only in guards"
+
+      | otherwise -> do
           op' <- convertArithOp op
           lhs' <- convertExpr lhs
           rhs' <- convertExpr rhs
@@ -203,6 +220,22 @@ convertExpr expr =
             }
 
     _ -> Left "unsupported expression in PythonMLIR--"
+
+isCompareOp :: Py.Op a -> Bool
+isCompareOp op =
+  case op of
+    Py.LessThan {}          -> True
+    Py.GreaterThan {}       -> True
+    Py.Equality {}          -> True
+    Py.GreaterThanEquals {} -> True
+    Py.LessThanEquals {}    -> True
+    Py.NotEquals {}         -> True
+    Py.NotEqualsV2 {}       -> True
+    Py.In {}                -> True
+    Py.Is {}                -> True
+    Py.IsNot {}             -> True
+    Py.NotIn {}             -> True
+    _                       -> False
 
 convertCondition :: Py.Expr a -> Either String (PMM.Condition a)
 convertCondition expr =
@@ -216,7 +249,7 @@ convertCondition expr =
           cmp <- convertCmpOp op
           lhs' <- convertExpr lhs
           rhs' <- convertExpr rhs
-          pure PMM.Compare
+          Right PMM.Compare
             { PMM.cmp_op = cmp
             , PMM.cmp_left = lhs'
             , PMM.cmp_right = rhs'
@@ -226,7 +259,7 @@ convertCondition expr =
     Py.Paren { Py.paren_expr = inner } ->
       convertCondition inner
 
-    _ -> Left "condition must be a single comparison"
+    _ -> Left "Invalid comparison AST node"
 
 convertRange :: Py.Expr a -> Either String (PMM.ForRange a)
 convertRange expr =
@@ -241,13 +274,12 @@ convertRange expr =
 
     _ -> Left "for-loop generator must be range(stop) or range(start, stop)"
 
--- TODO: Understand this better
 convertRangeArgs :: a -> [Py.Argument a] -> Either String (PMM.ForRange a)
 convertRangeArgs ann args =
   case args of
     [arg1] -> do
       stop <- convertPositionalArg arg1
-      pure PMM.RangeStop
+      Right PMM.RangeStop
         { PMM.range_stop = stop
         , PMM.range_annot = ann
         }
@@ -272,35 +304,35 @@ convertPositionalArg arg =
 convertArithOp :: Py.Op a -> Either String PMM.ArithOp
 convertArithOp op =
   case op of
-    Py.Plus {}        -> pure PMM.Add
-    Py.Minus {}       -> pure PMM.Sub
-    Py.Multiply {}    -> pure PMM.Mul
-    Py.FloorDivide {} -> pure PMM.FloorDiv
+    Py.Plus {}        -> Right PMM.Add
+    Py.Minus {}       -> Right PMM.Sub
+    Py.Multiply {}    -> Right PMM.Mul
+    Py.FloorDivide {} -> Right PMM.FloorDiv
     _                 -> Left "unsupported arithmetic operator in PythonMLIR--"
 
 convertCmpOp :: Py.Op a -> Either String PMM.CmpOp
 convertCmpOp op =
   case op of
-    Py.LessThan {}          -> pure PMM.Lt
-    Py.LessThanEquals {}    -> pure PMM.Lte
-    Py.GreaterThan {}       -> pure PMM.Gt
-    Py.GreaterThanEquals {} -> pure PMM.Gte
-    Py.Equality {}          -> pure PMM.Eq
-    Py.NotEquals {}         -> pure PMM.Neq
+    Py.LessThan {}          -> Right PMM.Lt
+    Py.LessThanEquals {}    -> Right PMM.Lte
+    Py.GreaterThan {}       -> Right PMM.Gt
+    Py.GreaterThanEquals {} -> Right PMM.Gte
+    Py.Equality {}          -> Right PMM.Eq
+    Py.NotEquals {}         -> Right PMM.Neq
     _                       -> Left "unsupported comparison operator in PythonMLIR--"
 
 convertTypeExpr :: Py.Expr a -> Either String PMM.Type
 convertTypeExpr expr =
   case expr of
     Py.Var { Py.var_ident = ident }
-      | Py.ident_string ident == "int" -> pure PMM.TInt
+      | Py.ident_string ident == "int" -> Right PMM.TInt
     _ -> Left "only the type int is supported in PythonMinusMinus"
 
-expectVarIdent :: String -> Py.Expr a -> Either String (PMM.Ident a)
-expectVarIdent err expr =
+expectVarIdent :: Py.Expr a -> Either String (PMM.Ident a)
+expectVarIdent expr =
   case expr of
-    Py.Var { Py.var_ident = ident } -> pure (convertIdent ident)
-    _                               -> Left err
+    Py.Var { Py.var_ident = ident } -> Right (convertIdent ident)
+    _                               -> Left "Invalid ident expression"
 
 convertIdent :: Py.Ident a -> PMM.Ident a
 convertIdent ident = PMM.Ident

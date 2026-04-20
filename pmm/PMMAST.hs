@@ -20,11 +20,11 @@ module PMMAST (
 
 import Data.Data (Data, Typeable)
 
--- | Convenient access to annotations in annotated types.
+-- Convenient access to annotations in annotated types.
 class Annotated t where
   annot :: t a -> a
 
--- | Identifier.
+-- Identifier.
 data Ident annot = Ident
   { ident_string :: !String
   , ident_annot  :: annot
@@ -34,19 +34,19 @@ data Ident annot = Ident
 instance Annotated Ident where
   annot = ident_annot
 
--- | PythonMinusMinus has exactly one type.
+-- PythonMinusMinus has exactly one type.
 data Type
   = TInt
   deriving (Eq, Ord, Show, Typeable, Data)
 
--- | A module is a sequence of top-level statements.
+-- A module is a sequence of top-level statements.
 data Module annot = Module [Statement annot]
   deriving (Eq, Ord, Show, Typeable, Data, Functor, Foldable, Traversable)
 
--- | A block of statements.
+-- A block of statements.
 type Suite annot = [Statement annot]
 
--- | Function parameter.
+-- Function parameter.
 --
 -- Parameters must be explicitly annotated in PythonMinusMinus.
 data Parameter annot = Parameter
@@ -59,7 +59,7 @@ data Parameter annot = Parameter
 instance Annotated Parameter where
   annot = param_annot
 
--- | Statements supported by PythonMinusMinus.
+-- Statements supported by PythonMinusMinus.
 data Statement annot
   = FunDef
     { fun_name        :: Ident annot
@@ -103,7 +103,7 @@ data Statement annot
 instance Annotated Statement where
   annot = stmt_annot
 
--- | Arithmetic expressions.
+-- Arithmetic expressions.
 --
 -- Comparisons are intentionally *not* part of Expr because the language only
 -- allows them in control-flow conditions.
@@ -131,7 +131,7 @@ data Expr annot
 instance Annotated Expr where
   annot = expr_annot
 
--- | Arithmetic operators supported by PythonMinusMinus.
+-- Arithmetic operators supported by PythonMinusMinus.
 data ArithOp
   = Add
   | Sub
@@ -139,7 +139,7 @@ data ArithOp
   | FloorDiv
   deriving (Eq, Ord, Show, Typeable, Data)
 
--- | Conditions supported by PythonMinusMinus.
+-- Conditions supported by PythonMinusMinus.
 --
 -- A condition must be a single comparison.
 data Condition annot = Compare
@@ -153,7 +153,7 @@ data Condition annot = Compare
 instance Annotated Condition where
   annot = cond_annot
 
--- | Comparison operators supported by PythonMinusMinus.
+-- Comparison operators supported by PythonMinusMinus.
 data CmpOp
   = Lt
   | Lte
@@ -163,7 +163,7 @@ data CmpOp
   | Neq
   deriving (Eq, Ord, Show, Typeable, Data)
 
--- | The only supported loop generator is range(...).
+-- The only supported loop generator is range(...).
 data ForRange annot
   = RangeStop
     { range_stop  :: Expr annot
