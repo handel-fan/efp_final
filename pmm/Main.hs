@@ -18,20 +18,19 @@ main = do
 parseArgs :: [String] -> IO FilePath
 parseArgs args =
   case args of
-    [path] -> pure path
-    _ ->
-      die "Usage: run-pmm <python-file>"
+    [path] -> return path
+    _ -> die "Usage: run-pmm <python-file>"
 
 runPipeline :: FilePath -> String -> IO ()
 runPipeline path input =
   case Py3.parseModule input path of
     Left parseErr ->
       die $
-        "Python parse failed for " ++ path ++ ":\n" ++ show parseErr
+        "Host AST failed parse for:" ++ path ++ ":\n" ++ show parseErr
 
     Right (pyModule, comments) -> do
       hPutStrLn stderr $
-        "Parsed Python module successfully."
+        "Host AST parsed successfully."
       hPutStrLn stderr $
         "Comment token count: " ++ show (length comments)
 
