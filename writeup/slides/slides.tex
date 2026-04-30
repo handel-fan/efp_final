@@ -1,0 +1,240 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\definecolor{codegray}{RGB}{245,245,245}
+\definecolor{codeblue}{RGB}{36,82,145}
+\definecolor{codegreen}{RGB}{40,120,60}
+
+\lstset{
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{codeblue},
+  commentstyle=\color{gray},
+  stringstyle=\color{codegreen},
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{codegray},
+  columns=fullflexible,
+  keepspaces=true
+}
+
+\title{Parsing Python with Haskell and Lowering to MLIR}
+\author{Jegannarayanan Sivakasiulaganathan}
+\date{\today}
+
+\begin{document}
+
+% ------------------------------------------------------------
+\begin{frame}
+  \titlepage
+  \vspace{-0.4cm}
+  \begin{center}
+    \small \url{https://github.com/handel-fan/efp_final}
+  \end{center}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Project Goal}
+  \begin{block}{Goal}
+    Build a small compiler-style pipeline that parses Python using Haskell and lowers a restricted Python subset toward MLIR.
+  \end{block}
+
+  \vspace{0.3cm}
+  \centering
+  \Large
+  Python source $\rightarrow$ Haskell AST $\rightarrow$ Project AST $\rightarrow$ MLIR AST $\rightarrow$ MLIR
+
+  \vspace{0.5cm}
+  \normalsize
+  The completed work focuses mainly on parsing and AST conversion. The MLIR lowering step was started but not fully completed.
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{What is MLIR?}
+  \begin{itemize}
+    \item MLIR is an intermediate representation used between high-level source code and lower-level LLVM IR.
+    \item It supports multiple levels of abstraction before reaching machine code.
+    \item Dialects group related operations and types for specific domains.
+  \end{itemize}
+
+  \vspace{0.35cm}
+  \centering
+  \Large
+  Source code $\rightarrow$ MLIR $\rightarrow$ LLVM IR $\rightarrow$ machine code
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}[fragile]{MLIR Example}
+  \begin{lstlisting}
+module {
+  func.func @add_example(%a: i32, %b: i32) -> i32 {
+    %0 = arith.addi %a, %b : i32
+    return %0 : i32
+  }
+}
+  \end{lstlisting}
+
+  \vspace{0.25cm}
+  \begin{itemize}
+    \item \texttt{func} describes functions.
+    \item \texttt{arith} describes arithmetic operations.
+    \item This form enables machine-agnostic analysis and optimization.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{MLIR Core Concepts}
+  \begin{description}
+    \item[Operations] Basic units of computation. Operations take inputs and may produce results.
+    \item[Regions] Containers attached to operations. They hold blocks and represent bodies of functions or control flow.
+    \item[Blocks] Ordered sequences of operations. Blocks may also take arguments.
+    \item[Dialects] Namespaces for related operations and types, such as \texttt{arith}, \texttt{func}, and \texttt{llvm}.
+  \end{description}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Why Use Haskell to Parse Python?}
+  \begin{itemize}
+    \item Haskell represents syntax directly with algebraic data types.
+    \item Expressions, statements, and functions can be modeled explicitly instead of using generic objects or loosely structured values.
+    \item Parser and converter logic can be composed from smaller functions.
+    \item Types such as \texttt{Either} and \texttt{Maybe} make failure cases visible in function signatures.
+    \item Compared with C++, Haskell avoids much of the boilerplate around classes, pointers, references, ownership, and error handling.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Parsing Strategy}
+  \begin{enumerate}
+    \item Use \texttt{language-python} to parse Python source into the library's Python AST.
+    \item Convert the \texttt{language-python} AST into a smaller project-defined AST.
+    \item Restrict the language to a scoped subset called \texttt{PythonMLIR--}.
+    \item Use this smaller AST as the intended input to MLIR lowering.
+  \end{enumerate}
+
+  \vspace{0.3cm}
+  \begin{block}{Important files}
+    \texttt{pmm/ConvertAST.hs} converts the host AST.\newline
+    \texttt{pmm/PMMAST.hs} defines the project AST.\newline
+    \texttt{pmm/LowerMLIR.hs} contains the incomplete lowering work.
+  \end{block}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{PythonMLIR-- Language Subset}
+  \begin{itemize}
+    \item The project uses a restricted Python subset to keep the compiler pipeline manageable.
+    \item The subset focuses on typed variables, integer operations, expressions, and basic control flow.
+    \item Dynamic Python features are intentionally avoided.
+  \end{itemize}
+
+  \vspace{0.35cm}
+  \begin{block}{Planning documents}
+    \texttt{docs/planning/PythonMLIR--.md}: supported and excluded features.\newline
+    \texttt{docs/planning/pythonmlir\_supported\_ops.py}: concrete supported syntax examples.
+  \end{block}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}[fragile]{Example Lowering Target}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.47\textwidth}
+      \textbf{PythonMLIR-- input}
+      \begin{lstlisting}[language=Python]
+x: int = 5
+y: int = 10
+z: int = x + y
+      \end{lstlisting}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \textbf{Simplified MLIR output}
+      \begin{lstlisting}
+%0 = arith.constant 5 : i32
+%1 = arith.constant 10 : i32
+%2 = arith.addi %0, %1 : i32
+      \end{lstlisting}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.35cm}
+  The intended lowering maps typed integer declarations and expressions into MLIR arithmetic operations.
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Repository Layout and Reproducibility}
+  \begin{itemize}
+    \item Main project directory: \texttt{pmm/}
+    \item Example input programs: \texttt{pmm/examples/}
+    \item Build script: \texttt{./build\_pmm.bash}
+    \item Run script: \texttt{./run\_pmm.bash}
+  \end{itemize}
+
+  \vspace{0.35cm}
+  \begin{block}{External libraries}
+    \texttt{language-python} and \texttt{mlir-hs} should be sibling directories of \texttt{pmm/} at the repository root.
+  \end{block}
+
+  \vspace{0.2cm}
+  \small
+  The executable is \texttt{run-pmm}; \texttt{pmm/Main.hs} is the entry point.
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{What Works}
+  \begin{itemize}
+    \item A defined \texttt{PythonMLIR--} subset.
+    \item Concrete examples of supported syntax and operations.
+    \item Conversion from the \texttt{language-python} AST to a smaller project AST.
+    \item A project AST designed around the selected Python features.
+    \item A partial lowering path from the project AST toward MLIR structures.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{What I Learned}
+  \begin{itemize}
+    \item How to convert and walk ASTs using Haskell.
+    \item How host AST structure determines what the converter must handle.
+    \item Haskell constructs such as monads and record syntax.
+    \item MLIR concepts including operations, regions, blocks, terminators, block arguments, and control flow.
+    \item Compiler projects become difficult quickly because each stage depends on precise structure from the previous stage.
+  \end{itemize}
+
+  \vspace{0.25cm}
+  \centering
+  \Large
+  Module $\rightarrow$ Statement $\rightarrow$ Expr $\rightarrow$ Var $\mid$ IntLit $\mid$ BinaryOp
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{AI Use}
+  \begin{itemize}
+    \item AI was used for code generation, Haskell explanations, AST explanations, MLIR concepts, and LaTeX writing help.
+    \item Generated code was reviewed line by line instead of being copied without understanding.
+    \item The work still required understanding the intended behavior and the language constructs used by the generated code.
+  \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Conclusion}
+  \begin{block}{Main result}
+    The project successfully scoped a Python subset and implemented the front half of the pipeline: parsing Python and converting it into a smaller Haskell-defined AST.
+  \end{block}
+
+  \vspace{0.3cm}
+  \begin{block}{Next step}
+    Complete \texttt{LowerMLIR.hs} so the project AST lowers into \texttt{mlir-hs} structures and emits MLIR code automatically.
+  \end{block}
+\end{frame}
+
+\end{document}
