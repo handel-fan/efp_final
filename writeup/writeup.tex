@@ -1,0 +1,200 @@
+\documentclass[11pt]{article}
+
+% Packages
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Code styling for Haskell / MLIR / Python
+\lstset{
+basicstyle=\ttfamily\small,
+keywordstyle=\color{blue},
+commentstyle=\color{gray},
+stringstyle=\color{green!50!black},
+breaklines=true,
+frame=single
+}
+
+% Title Info
+\title{Parsing Python with Haskell and Lowering to MLIR}
+\author{Jegannarayanan Sivakasiulaganathan}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+	This report explores the design and implementation of a system that parses
+	Python using Haskell and lowers it into MLIR. The motivation, architectural
+	decisions, and results are discussed, along with use of AI and conclusions.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+% ----------------------------
+\section{Introduction}
+Brief overview of the project, goals, and motivation.
+
+% ----------------------------
+\section{MLIR: An Introduction}
+\subsection{LLVM MLIR IR objects}
+This section briefly looks at what MLIR IR objects look like, and why they are important.
+In LLVM, MLIR is a intermediate representation between high-level source code and LLVMIR:
+
+\noindent Source Code (Python, C, C++, etc.) $\to$ MLIR $\to$ LLVMIR $\to$ Machine code
+
+\noindent Some variants/dialects of MLIR:
+
+\begin{enumerate}
+	\item arith
+	\item func
+	\item linalg
+\end{enumerate}
+
+\noindent An example in arith:
+\begin{verbatim}
+module {
+  func.func @add_example(%a: i32, %b: i32) -> i32 {
+    %0 = arith.addi %a, %b : i32
+    return %0 : i32
+  }
+}
+\end{verbatim}
+
+\noindent These representations allow for machine-agnostic standardized analyses and optimization passes.
+
+\subsection{Core Concepts}
+\begin{itemize}
+	\item \textbf{Operations}: The basic unit of computation in MLIR. Each
+	      operation represents a single step and can produce results and take
+	      inputs.
+
+	\item \textbf{Regions}: Containers attached to operations. Regions hold blocks
+	      and allow for things like control flow constructs and
+	      function bodies.
+	\item \textbf{Blocks}: Ordered sequences of operations.
+	      Blocks may take arguments, similar to function parameters.
+
+	\item \textbf{Dialects}: Namespaces that group related operations and types.
+	      They allow MLIR to support multiple domains Ex: \texttt{arith},
+	      \texttt{func}, \texttt{llvm}.
+\end{itemize}
+
+
+\subsection{Why MLIR?}
+\begin{itemize}
+	\item \textbf{Multi-level abstraction}: MLIR allows different levels of
+	      lowering, allowing us to reason on different levels of representations
+	      (tensor, cf are examples)
+
+	\item \textbf{Extensibility via dialects}: New domains can define custom
+	      operations and types without modifying the core system.
+
+	\item \textbf{Reusable infrastructure}: Optimization passes, analyses, and
+	      transformations can be shared across different dialects and stages.
+\end{itemize}
+% ----------------------------
+\section{Why Use Haskell to Parse Python}
+\subsection{Motivation}
+Why not Python or C++ to parse Python?
+
+High school has algebraic types, and fluid composition.
+The type system and monadic operations themselves
+lend to easier parsing. Furthermore, types like `Either` and
+`Maybe` are very useful for error management in a fluid manner,
+compared to how errors are managed and collected in imperative languages
+
+
+\subsection{Parsing Strategy}
+My strategy here was to leverage the library `language-python`,
+which parser Python, and convert it into an AST Defined by the
+`language-python` itself.
+
+Next, I wrote a converter to take the `language-python` AST
+and create my own AST with all the operations I chose to support
+in Python, a much smaller subset of Python. (for simplicity)
+
+Lastly, my plan was to take this AST and lower it MLIR.
+
+
+\subsection{Mapping to MLIR}
+How the AST lowers into MLIR constructs.
+
+% ----------------------------
+\section{System Architecture}
+\subsection{Pipeline Overview}
+Python source $\rightarrow$ Haskell AST $\rightarrow$ MLIR AST $\rightarrow$ MLIR lowering.
+
+\subsection{Key Components}
+Parser, AST representation, lowering logic.
+
+\subsection{Example}
+\begin{lstlisting}[language=Python]
+x: int = 5
+y: int = 10
+z: int = x + y
+\end{lstlisting}
+
+\begin{lstlisting}
+
+# Example MLIR (simplified)
+
+%0 = arith.constant 5 : i32
+%1 = arith.constant 10 : i32
+%2 = arith.addi %0, %1 : i32
+\end{lstlisting}
+
+% ----------------------------
+\section{AI Use}
+\subsection{Motivation}
+How this system relates to AI workflows.
+
+\subsection{Compiler + AI Intersection}
+Optimization, model execution, or DSLs.
+
+\subsection{Future Potential}
+Where this could go in ML systems or research.
+
+% ----------------------------
+\section{Results}
+\subsection{What Works}
+Supported features, successful lowering.
+
+\subsection{Limitations}
+What is not supported.
+
+\subsection{Performance}
+(Optional) Any benchmarks or observations.
+
+% ----------------------------
+\section{Discussion}
+Trade-offs, lessons learned, design decisions.
+
+% ----------------------------
+\section{Conclusion}
+Summary and final thoughts.
+
+% ----------------------------
+\section{Future Work}
+Possible improvements and extensions.
+
+% ----------------------------
+\begin{thebibliography}{9}
+
+	\bibitem{mlir}
+	MLIR Documentation. \
+	\url{https://mlir.llvm.org/}
+
+	\bibitem{haskell}
+	Haskell Language Report. \
+	\url{https://www.haskell.org/}
+
+\end{thebibliography}
+
+\end{document}
+
