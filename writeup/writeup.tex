@@ -148,6 +148,20 @@ The file which corresponds to this is found under pmm/LowerMLIR.hs.
 Python source $\rightarrow$ Haskell AST $\rightarrow$ MLIR AST $\rightarrow$
 MLIR lowering.
 
+\subsection{PythonMLIR-- Language Subset}
+
+This project uses a smaller subset of Python called \texttt{PythonMLIR--}. The
+planning file \texttt{docs/planning/PythonMLIR--.md} describes which Python
+features are supported and which features are excluded.
+
+The file \texttt{docs/planning/pythonmlir\_supported\_ops.py} gives concrete
+examples of the supported syntax and operations. These files define the input
+language used by the parser, AST conversion step, and MLIR lowering step.
+
+Limiting the Python subset makes the project easier to reason about. It avoids
+many dynamic Python features and focuses on typed variables, integer
+operations, expressions, and basic control flow.
+
 \subsection{Example}
 \begin{lstlisting}[language=Python]
 x: int = 5

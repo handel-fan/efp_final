@@ -6,7 +6,6 @@
 
 ## Writeup
 
-1. I need to put in docs/planning/PythonMLIR--.md somehow
 2. Use AI to "listify" where necessary
 3. Use AI to fix grammar mistakes
 4. Use AI to make the `` better
