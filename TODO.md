@@ -10,3 +10,6 @@
 2. Use AI to "listify" where necessary
 3. Use AI to fix grammar mistakes
 4. Use AI to make the `` better
+5. Make section on how to run the code - reproducibility
+6. Write what each section corresponds to (which file)
+7. Include repo link

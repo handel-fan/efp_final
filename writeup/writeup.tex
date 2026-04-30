@@ -37,10 +37,6 @@ frame=single
 \newpage
 
 % ----------------------------
-\section{Introduction}
-Brief overview of the project, goals, and motivation.
-
-% ----------------------------
 \section{MLIR: An Introduction}
 \subsection{LLVM MLIR IR objects}
 This section briefly looks at what MLIR IR objects look like, and why they are
@@ -101,12 +97,22 @@ module {
 % ----------------------------
 \section{Why Use Haskell to Parse Python}
 \subsection{Motivation}
-Why not Python or C++ to parse Python?
 
-High school has algebraic types, and fluid composition. The type system and
-monadic operations themselves lend to easier parsing. Furthermore, types like
-`Either` and `Maybe` are very useful for error management in a fluid manner,
-compared to how errors are managed and collected in imperative languages
+A natural question is why this project uses Haskell to parse Python instead of
+Python itself or C++. When using Haskell, abstract syntax trees are explicit in
+the type system, rather than representing syntax through generic objects,
+dictionaries, or large class hierarchies.
+
+Haskell also supports a compositional style of parsing. Small parsers can be
+combined into larger parsers, and monadic operations provide a clean way to
+sequence computations that may consume input, carry context, or fail. Types
+such as \texttt{Either} and \texttt{Maybe} make these failure cases visible in
+function signatures, which is very desirable.
+
+For this project, Haskell was chosen because it keeps the parser and lowering
+logic close to the structure of the language being processed. Haskell offers a
+concise way to describe grammar, represent syntax, compose parsing logic, and
+propagate errors in a type-directed manner.
 
 \subsection{Parsing Strategy}
 My strategy here was to leverage the library `language-python`, which parser
@@ -115,6 +121,9 @@ Python, and convert it into an AST Defined by the `language-python` itself.
 Next, I wrote a converter to take the `language-python` AST and create my own
 AST with all the operations I chose to support in Python, a much smaller subset
 of Python. (for simplicity)
+
+The file which Corresponds to this can be found under pmm/ConvertAST.hs. The
+AST which I convert to is pmm/AST.hs.
 
 \subsection{Mapping to MLIR}
 Lastly, my plan was to take this AST and lower it MLIR. I was planning to
@@ -130,7 +139,9 @@ explicitly defined in its codebase.
 Then my plan would have been to leverage the builder inside the project to
 automatically emit MLIR code.
 
-I stopped short at creating the MLIR AST converter.
+I stopped short at creating the MLIR AST converter partway.
+
+The file which corresponds to this is found under pmm/LowerMLIR.hs.
 % ----------------------------
 \section{System Architecture}
 \subsection{Pipeline Overview}
@@ -181,6 +192,7 @@ docs/planning/PythonMLIR--.md.
 Some of the things I learned in this project are:
 
 * How to convert and walk ASTs using Haskell. In this regard, I learned a lot about how
+the host AST defines A lot of what you have to account for when converting to your own AST.
 * Deep dives on Haskell language constructs
 * MLIR structure and operations: Operations, Regions, Blocks, Control Flow,
 how if, for, function calls, etc all actually work under the hood. Terminators,
