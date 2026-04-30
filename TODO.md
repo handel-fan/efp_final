@@ -6,9 +6,9 @@
 
 ## Writeup
 
-2. Use AI to "listify" where necessary
-3. Use AI to fix grammar mistakes
-4. Use AI to make the `` better
-5. Make section on how to run the code - reproducibility
-6. Write what each section corresponds to (which file)
-7. Include repo link
+1. Use AI to fix grammar mistakes
+2. Use AI to make the `` better
+3. Make section on how to run the code - reproducibility
+4. Write what each section corresponds to (which file)
+5. Include repo link
+6. BONUS: In what I learned, include more haskell Language constructs.

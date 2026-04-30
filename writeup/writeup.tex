@@ -74,6 +74,7 @@ module {
 	\item \textbf{Regions}: Containers attached to operations. Regions hold blocks
 	      and allow for things like control flow constructs and
 	      function bodies.
+
 	\item \textbf{Blocks}: Ordered sequences of operations.
 	      Blocks may take arguments, similar to function parameters.
 
@@ -94,26 +95,30 @@ module {
 	\item \textbf{Reusable infrastructure}: Optimization passes, analyses, and
 	      transformations can be shared across different dialects and stages.
 \end{itemize}
+
 % ----------------------------
 \section{Why Use Haskell to Parse Python}
 \subsection{Motivation}
 
-A natural question is why this project uses Haskell to parse Python instead of
-Python itself or C++. When using Haskell, abstract syntax trees are explicit in
-the type system, rather than representing syntax through generic objects,
-dictionaries, or large class hierarchies.
+\subsection{Motivation}
 
-Haskell also supports a compositional style of parsing. Small parsers can be
-combined into larger parsers, and monadic operations provide a clean way to
-sequence computations that may consume input, carry context, or fail. Types
-such as \texttt{Either} and \texttt{Maybe} make these failure cases visible in
-function signatures, which is very desirable.
+This project uses Haskell to parse Python because Haskell gives a direct way to
+represent syntax in the type system. For example, expressions, statements, and
+functions can be represented as explicit data types instead of being handled as
+generic objects or loosely structured values.
 
-For this project, Haskell was chosen because it keeps the parser and lowering
-logic close to the structure of the language being processed. Haskell offers a
-concise way to describe grammar, represent syntax, compose parsing logic, and
-propagate errors in a type-directed manner.
+Haskell is also a good fit for parsing because parser operations can be
+composed from smaller pieces. This makes it easier to build the parser step by
+step and to keep failure cases visible through types such as \texttt{Either}
+and \texttt{Maybe}. These features make the parsing and lowering code easier to
+organize for this project.
 
+In C++, the same structures can be represented more strictly, but doing so
+often requires more boilerplate around classes, pointers, references,
+ownership, and error handling. For this project, Haskell provided a simpler way
+to describe the language structure without adding those cumbersome extra
+implementation details. I personally parsed a Language in C and found it very
+cumbersome compared to Haskell.
 \subsection{Parsing Strategy}
 My strategy here was to leverage the library `language-python`, which parser
 Python, and convert it into an AST Defined by the `language-python` itself.
@@ -133,15 +138,18 @@ I didn't fully succeed here.
 
 What success would've looked like here is:
 
-Taking my `Python--` AST and lowering this AST to an AST that mlir-hs
-explicitly defined in its codebase.
-
-Then my plan would have been to leverage the builder inside the project to
-automatically emit MLIR code.
+\begin{enumerate}
+	\item Take my \texttt{Python--} AST.
+	\item Lower this AST to an AST that \texttt{mlir-hs} explicitly defined in its
+	      codebase.
+	\item Leverage the builder inside the project to automatically emit MLIR code.
+	\item Complete the MLIR AST converter.
+\end{enumerate}
 
 I stopped short at creating the MLIR AST converter partway.
 
 The file which corresponds to this is found under pmm/LowerMLIR.hs.
+
 % ----------------------------
 \section{System Architecture}
 \subsection{Pipeline Overview}
@@ -183,8 +191,13 @@ z: int = x + y
 \subsection{Use of AI}
 I used AI heavily for the following:
 
-Understanding Haskell language constructs as well as AST constructs and MLIR.
-Generating code to my specifications Helping with LaTeX for writing
+\begin{itemize}
+	\item Understanding Haskell language constructs.
+	\item Understanding AST constructs.
+	\item Understanding MLIR concepts.
+	\item Generating code to my specifications.
+	\item Helping with LaTeX writing.
+\end{itemize}
 
 \subsection{Important statement about AI use}
 
@@ -202,16 +215,51 @@ MLIR constructs.
 Currently, I am able to take an AST of a script defined like in
 docs/planning/PythonMLIR--.md.
 
+The working parts of the project are:
+
+\begin{itemize}
+	\item A defined subset of Python in \texttt{docs/planning/PythonMLIR--.md}.
+	\item Concrete examples of supported syntax in
+	      \texttt{docs/planning/pythonmlir\_supported\_ops.py}.
+	\item A conversion step from the \texttt{language-python} AST to my own smaller
+	      project AST.
+	\item A project AST defined around the Python features I chose to support.
+	\item A partial lowering path from my project AST toward MLIR structures.
+\end{itemize}
+
 \subsection{What I learned}
 Some of the things I learned in this project are:
 
-* How to convert and walk ASTs using Haskell. In this regard, I learned a lot about how
-the host AST defines A lot of what you have to account for when converting to your own AST.
-* Deep dives on Haskell language constructs
-* MLIR structure and operations: Operations, Regions, Blocks, Control Flow,
-how if, for, function calls, etc all actually work under the hood. Terminators,
-block args, and much more.
-* How much more difficult a project is than it seems.
+\begin{itemize}
+	\item How to convert and walk ASTs using Haskell. In this regard, I learned a lot
+	      about how the host AST defines a lot of what you have to account for when
+	      converting to your own AST. Furthermore, I learned about structural and
+	      recursive traversal of the AST. Here is an example which I saw repeatedly:
+	      \[
+		      \text{Module}
+		      \rightarrow
+		      \text{Statement}
+		      \rightarrow
+		      \text{FunctionDef}
+		      \rightarrow
+		      \text{Arguments}
+		      \rightarrow
+		      \text{Body}
+		      \rightarrow
+		      \text{Expression}
+		      \rightarrow
+		      \text{Literal}
+	      \]
+
+	\item Deep dives on Haskell language constructs - monads, record syntax,
+
+	\item MLIR structure and operations: Operations, Regions, Blocks, Control Flow, how
+	      if, for, function calls, etc all actually work under the hood.
+
+	\item Terminators, block args, and other MLIR structural details.
+
+	\item How much more difficult a project is than it seems.
+\end{itemize}
 
 % ----------------------------
 \section{Conclusion}
