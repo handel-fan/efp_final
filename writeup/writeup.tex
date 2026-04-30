@@ -119,8 +119,9 @@ to describe the language structure without adding those cumbersome extra
 implementation details. I personally parsed a Language in C and found it very
 cumbersome compared to Haskell.
 \subsection{Parsing Strategy}
-My strategy here was to leverage the library `language-python`, which parses
-Python, and convert it into an AST defined by the `language-python` itself.
+My strategy here was to leverage the library \texttt{language-python}, which
+parses Python, and convert it into an AST defined by \texttt{language-python}
+itself.
 
 Next, I wrote a converter to take the `language-python` AST and create my own
 AST with all the operations I chose to support in Python, a much smaller subset
@@ -131,7 +132,7 @@ AST which I convert to is pmm/AST.hs.
 
 \subsection{Mapping to MLIR}
 Lastly, my plan was to take this AST and lower it to MLIR. I was planning to
-leverage the library `mlir-hs` to do so.
+leverage the library \texttt{mlir-hs} to do so.
 
 I didn't fully succeed here.
 
