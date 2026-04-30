@@ -30,8 +30,7 @@
 
 \title{Parsing Python with Haskell and Lowering to MLIR}
 \author{Jegannarayanan Sivakasiulaganathan}
-\date{\today}
-
+\date{}
 \begin{document}
 
 % ------------------------------------------------------------
@@ -46,17 +45,22 @@
 % ------------------------------------------------------------
 \begin{frame}{Project Goal}
 	\begin{block}{Goal}
-		Build a small compiler-style pipeline that parses Python using Haskell and lowers a restricted Python subset toward MLIR.
+		Parse Python using Haskell and lower a restricted Python subset toward MLIR.
 	\end{block}
 
-	\vspace{0.3cm}
+	\vspace{0.25cm}
 	\centering
 	\Large
-	Python source $\rightarrow$ Haskell AST $\rightarrow$ Project AST $\rightarrow$ MLIR AST $\rightarrow$ MLIR
+	Python source $\rightarrow$ \texttt{language-python} AST $\rightarrow$ Project AST $\rightarrow$ \texttt{mlir-hs} AST $\rightarrow$ MLIR
 
-	\vspace{0.5cm}
+	\vspace{0.35cm}
 	\normalsize
-	The completed work focuses mainly on parsing and AST conversion. The MLIR lowering step was started but not fully completed.
+	\begin{itemize}
+		\item \texttt{language-python} was used to parse Python source into a Haskell AST.
+		\item \texttt{mlir-hs} was used for the planned MLIR AST construction and output.
+		\item The completed work focuses mainly on parsing and AST conversion. The MLIR
+		      lowering step was started but not completed.
+	\end{itemize}
 \end{frame}
 
 % ------------------------------------------------------------
@@ -65,7 +69,6 @@
 		\item MLIR is an intermediate representation used between high-level source code and
 		      lower-level LLVM IR.
 		\item It supports multiple levels of abstraction before reaching machine code.
-		\item Dialects group related operations and types for specific domains.
 	\end{itemize}
 
 	\vspace{0.35cm}
@@ -87,29 +90,31 @@ module {
 
 	\vspace{0.25cm}
 	\begin{itemize}
-		\item \texttt{func} describes functions.
-		\item \texttt{arith} describes arithmetic operations.
-		\item This form enables machine-agnostic analysis and optimization.
+		\item Note the syntax is in between high level and lowering - there are integers with
+		      specific precision already defined for example.
+		\item In general, there are much richer syntax across several dialects for linalg,
+		      control flow, etc.
 	\end{itemize}
 \end{frame}
 
 % ------------------------------------------------------------
-\begin{frame}{MLIR Core Concepts}
-	\begin{description}
-		\item[Operations] Basic units of computation. Operations take inputs and may produce
-		      results.
-		\item[Regions] Containers attached to operations. They hold blocks and represent
-		      bodies of functions or control flow.
-		\item[Blocks] Ordered sequences of operations. Blocks may also take arguments.
-		\item[Dialects] Namespaces for related operations and types, such as \texttt{arith},
-		      \texttt{func}, and \texttt{llvm}.
-	\end{description}
-\end{frame}
+\begin{frame}{Why MLIR?}
+	\begin{itemize}
+		\item Before code becomes machine code, it has to be broken into simpler operations,
+		      types, blocks, and control flow.
+		\item This makes it easier to analyze, transform, and optimize programs in a machine
+		      agnostic way. (Think loop unrolling, dead code elimination, constant folding)
+	\end{itemize}
 
+	\vspace{0.35cm}
+	\centering
+	\Large
+	Python syntax $\rightarrow$ AST $\rightarrow$ MLIR $\rightarrow$ LLVM IR
+\end{frame}
 % ------------------------------------------------------------
 \begin{frame}{What is an AST?}
 	\begin{block}{Abstract Syntax Tree}
-		An abstract syntax tree, or AST, is a tree-shaped representation of a program's structure after parsing.
+		An abstract syntax tree, or AST, is a tree-shaped representation of a program's execution structure after parsing.
 	\end{block}
 
 	\vspace{0.25cm}
@@ -117,31 +122,44 @@ module {
 		\item It removes surface-level syntax details such as whitespace and punctuation.
 		\item It keeps the important structure of the program: variables, literals,
 		      expressions, statements, and functions.
-		\item Compiler stages usually operate on this structured representation instead of
-		      raw source text.
+		\item Virtually every compiler reasons using ASTs.
 	\end{itemize}
 
 	\vspace{0.3cm}
 	\centering
 	\Large
-	Source text $\rightarrow$ Parser $\rightarrow$ AST $\rightarrow$ Compiler passes
+	Source text $\rightarrow$ Parser $\rightarrow$ AST $\rightarrow$ Compiler optimization passes
 \end{frame}
 
 % ------------------------------------------------------------
 \begin{frame}[fragile]{Example: Python Source to AST}
+	\small
+
 	\begin{columns}[T,onlytextwidth]
 		\begin{column}{0.42\textwidth}
 			\textbf{Python input}
-			\begin{lstlisting}[language=Python]
+
+			\vspace{0.1cm}
+			\begin{lstlisting}[language=Python,basicstyle=\ttfamily\scriptsize]
 x: int = 5
 y: int = 10
 z: int = x + y
-      \end{lstlisting}
+			\end{lstlisting}
+
+			\vspace{0.15cm}
+			\begin{itemize}
+				\item The AST is a tree with \texttt{Module} at the root.
+				\item A module is usually a single executing file.
+				\item This module contains assignment statements.
+				\item The assignment for \texttt{z} contains a binary operation child.
+			\end{itemize}
 		\end{column}
 
 		\begin{column}{0.55\textwidth}
 			\textbf{Simplified AST shape}
-			\begin{lstlisting}
+
+			\vspace{0.1cm}
+			\begin{lstlisting}[basicstyle=\ttfamily\scriptsize]
 Module
   Assign x
     Type: int
@@ -157,18 +175,15 @@ Module
       BinaryOp +
         Var x
         Var y
-      \end{lstlisting}
+			\end{lstlisting}
 		\end{column}
 	\end{columns}
-
-	\vspace{0.2cm}
-	The AST represents the meaning-bearing structure of the program, not the exact text formatting.
 \end{frame}
 
 % ------------------------------------------------------------
 \begin{frame}{The Converter: Main Project Work}
-	\begin{block}{Main idea}
-		The bulk of the project was converting the large \texttt{language-python} AST into a smaller project-defined AST.
+	\begin{block}{What I did}
+		The bulk of the project was converting the large \texttt{language-python} AST into a smaller project-defined AST, using Haskell.
 	\end{block}
 	\centering
 	\Large
@@ -178,38 +193,35 @@ Module
 	$\rightarrow$
 	\texttt{PMMAST.hs AST}
 \end{frame}
-\begin{frame}{Why Use Haskell to Parse Python?}
+% ------------------------------------------------------------
+\begin{frame}{Why Use Haskell to Walk an AST and create another one?}
 	\begin{itemize}
-		\item Haskell represents syntax directly with algebraic data types.
-		\item Expressions, statements, and functions can be modeled explicitly instead of
-		      using generic objects or loosely structured values.
-		\item Parser and converter logic can be composed from smaller functions.
-		\item Types such as \texttt{Either} and \texttt{Maybe} make failure cases visible in
-		      function signatures.
-		\item Compared with C++, Haskell avoids much of the boilerplate around classes,
-		      pointers, references, ownership, and error handling.
+		\item Haskell's data types and pattern matching syntax make AST walking code very
+		      intuitive.
+		\item In other languages, The language syntax itself is represented by classes and
+		      fields.
+		\item In Haskell, the types are first class, so it is more natural to be able to
+		      represent your AST nodes as types themselves than as classes and fields.
+		\item Algebraic syntax is extremely useful for pattern matching and walking ASTs,
+		      Given an AST is a discrete computer science tree, walking it using algebraic
+		      syntax is very natural
+		\item Types such as \texttt{Either} and \texttt{Maybe} make failed conversions,
+		      unsupported syntax, and missing information visible in the function signatures.
 	\end{itemize}
 \end{frame}
-
 % ------------------------------------------------------------
 \begin{frame}{PythonMLIR-- Language Subset}
 	\begin{itemize}
-		\item The project uses a restricted Python subset to keep the compiler pipeline
-		      manageable.
-		\item The subset focuses on typed variables, integer operations, expressions, and
-		      basic control flow.
-		\item Dynamic Python features are intentionally avoided.
+		\item I decided to focus on a very small subset of Python to scope my project
+		      according to the time I had.
+		\item I focused on literals, functions, and control flow in my subset of python.
 	\end{itemize}
 
 	\vspace{0.35cm}
-	\begin{block}{Planning documents}
-		\texttt{docs/planning/PythonMLIR--.md}: supported and excluded features.\newline
-		\texttt{docs/planning/pythonmlir\_supported\_ops.py}: concrete supported syntax examples.
-	\end{block}
 \end{frame}
 
 % ------------------------------------------------------------
-\begin{frame}[fragile]{Example Lowering Target}
+\begin{frame}[fragile]{Example Python to MLIR lowering}
 	\begin{columns}[T,onlytextwidth]
 		\begin{column}{0.47\textwidth}
 			\textbf{PythonMLIR-- input}
@@ -230,17 +242,16 @@ z: int = x + y
 	\end{columns}
 
 	\vspace{0.35cm}
-	The intended lowering maps typed integer declarations and expressions into MLIR arithmetic operations.
+	This lowering showcases how python integer assignments and additions map to MLIR arith dialect operations.
 \end{frame}
 
 % ------------------------------------------------------------
 \begin{frame}{What Works}
 	\begin{itemize}
-		\item A defined \texttt{PythonMLIR--} subset.
-		\item Concrete examples of supported syntax and operations.
-		\item Conversion from the \texttt{language-python} AST to a smaller project AST.
-		\item A project AST designed around the selected Python features.
-		\item A partial lowering path from the project AST toward MLIR structures.
+		\item Conversion from the \texttt{language-python} AST to a smaller project AST, with
+		      some ugly printing.
+		\item This itself was a big task - I had to account for features the host AST
+		      supported in my own conversion to a smaller Python subset.
 	\end{itemize}
 \end{frame}
 
@@ -252,8 +263,9 @@ z: int = x + y
 		\item Haskell constructs such as monads and record syntax.
 		\item MLIR concepts including operations, regions, blocks, terminators, block
 		      arguments, and control flow.
-		\item Compiler projects become difficult quickly because each stage depends on
-		      precise structure from the previous stage.
+		\item Compiler projects become difficult quickly and it is best to iterate from a
+		      tiny project first.
+
 	\end{itemize}
 \end{frame}
 
