@@ -64,53 +64,16 @@
 \end{frame}
 
 % ------------------------------------------------------------
-\begin{frame}{What is MLIR?}
+\begin{frame}{PythonMLIR-- Language Subset}
 	\begin{itemize}
-		\item MLIR is an intermediate representation used between high-level source code and
-		      lower-level LLVM IR.
-		\item It supports multiple levels of abstraction before reaching machine code.
+		\item I decided to focus on a very small subset of Python to scope my project
+		      according to the time I had.
+		\item I focused on literals, functions, and control flow in my subset of python.
 	\end{itemize}
 
 	\vspace{0.35cm}
-	\centering
-	\Large
-	Source code $\rightarrow$ MLIR $\rightarrow$ LLVM IR $\rightarrow$ machine code
 \end{frame}
 
-% ------------------------------------------------------------
-\begin{frame}[fragile]{MLIR Example}
-	\begin{lstlisting}
-module {
-  func.func @add_example(%a: i32, %b: i32) -> i32 {
-    %0 = arith.addi %a, %b : i32
-    return %0 : i32
-  }
-}
-  \end{lstlisting}
-
-	\vspace{0.25cm}
-	\begin{itemize}
-		\item Note the syntax is in between high level and lowering - there are integers with
-		      specific precision already defined for example.
-		\item In general, there are much richer syntax across several dialects for linalg,
-		      control flow, etc.
-	\end{itemize}
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Why MLIR?}
-	\begin{itemize}
-		\item Before code becomes machine code, it has to be broken into simpler operations,
-		      types, blocks, and control flow.
-		\item This makes it easier to analyze, transform, and optimize programs in a machine
-		      agnostic way. (Think loop unrolling, dead code elimination, constant folding)
-	\end{itemize}
-
-	\vspace{0.35cm}
-	\centering
-	\Large
-	Python syntax $\rightarrow$ AST $\rightarrow$ MLIR $\rightarrow$ LLVM IR
-\end{frame}
 % ------------------------------------------------------------
 \begin{frame}{What is an AST?}
 	\begin{block}{Abstract Syntax Tree}
@@ -210,16 +173,57 @@ Module
 	\end{itemize}
 \end{frame}
 % ------------------------------------------------------------
-\begin{frame}{PythonMLIR-- Language Subset}
+% ------------------------------------------------------------
+\begin{frame}{What is MLIR?}
 	\begin{itemize}
-		\item I decided to focus on a very small subset of Python to scope my project
-		      according to the time I had.
-		\item I focused on literals, functions, and control flow in my subset of python.
+		\item MLIR is an intermediate representation used between high-level source code and
+		      lower-level LLVM IR.
+		\item It supports multiple levels of abstraction before reaching machine code.
 	\end{itemize}
 
 	\vspace{0.35cm}
+	\centering
+	\Large
+	Source code $\rightarrow$ MLIR $\rightarrow$ LLVM IR $\rightarrow$ machine code
 \end{frame}
 
+% ------------------------------------------------------------
+\begin{frame}[fragile]{MLIR Example}
+	\begin{lstlisting}
+module {
+  func.func @add_example(%a: i32, %b: i32) -> i32 {
+    %0 = arith.addi %a, %b : i32
+    return %0 : i32
+  }
+}
+  \end{lstlisting}
+
+	\vspace{0.25cm}
+	\begin{itemize}
+		\item Note the syntax is in between high level and lowering - there are integers with
+		      specific precision already defined for example.
+		\item In general, there are much richer syntax across several dialects for linalg,
+		      control flow, etc.
+	\end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Why MLIR?}
+	\begin{itemize}
+		\item Before code becomes machine code, it has to be broken into simpler operations,
+		      types, blocks, and control flow.
+		\item MLIR makes it easier to analyze, transform, and optimize programs in a standard
+		      manner. (Think loop unrolling, dead code elimination, constant folding)
+		\item Question: Why not just use ASTs? Answer: ASTs are closer to higher level source
+		      code. MLIR and intermediate representations allow us to encode lower compiler
+		      level and system level constructs.
+	\end{itemize}
+
+	\vspace{0.35cm}
+	\centering
+	\Large
+	Python syntax $\rightarrow$ AST $\rightarrow$ MLIR $\rightarrow$ LLVM IR
+\end{frame}
 % ------------------------------------------------------------
 \begin{frame}[fragile]{Example Python to MLIR lowering}
 	\begin{columns}[T,onlytextwidth]
@@ -267,18 +271,6 @@ z: int = x + y
 		      tiny project first.
 
 	\end{itemize}
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Conclusion}
-	\begin{block}{Main result}
-		The project successfully scoped a Python subset and implemented the front half of the pipeline: parsing Python and converting it into a smaller Haskell-defined AST.
-	\end{block}
-
-	\vspace{0.3cm}
-	\begin{block}{Next step}
-		Complete \texttt{LowerMLIR.hs} so the project AST lowers into \texttt{mlir-hs} structures and emits MLIR code automatically.
-	\end{block}
 \end{frame}
 
 \end{document}
