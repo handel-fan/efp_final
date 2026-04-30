@@ -187,6 +187,68 @@ z: int = x + y
 \end{lstlisting}
 
 % ----------------------------
+\section{Reproducibility}
+The repository for this project is available at:
+
+\begin{verbatim}
+https://github.com/handel-fan/efp/tree/main/final_project
+\end{verbatim}
+
+To run this project, the repository should contain the following libraries and
+project directories:
+
+\begin{itemize}
+	\item \texttt{language-python}: Used to parse Python source code into a Haskell
+	      AST. This is required by \texttt{pmm.cabal}.
+	\item \texttt{mlir-hs}: Used for the planned MLIR AST construction and MLIR
+	      emission.
+\end{itemize}
+
+The main project is located in \texttt{pmm/}. The Haskell source files are:
+
+\begin{itemize}
+	\item \texttt{pmm/Main.hs}
+	\item \texttt{pmm/ConvertAST.hs}
+	\item \texttt{pmm/PMMAST.hs}
+	\item \texttt{pmm/LowerMLIR.hs} INCOMPLETE
+\end{itemize}
+The external library directories should be placed at the repository root, at the
+same level as \texttt{pmm/}. In this layout, \texttt{language-python} and
+\texttt{mlir-hs} would both be sibling directories of \texttt{pmm/}.
+
+The file \texttt{pmm/Main.hs} is the entry point for the executable. It reads a
+Python file path from the command line, reads that file, and sends the file
+contents through the parsing pipeline. First, it uses \texttt{language-python}
+to parse the source program into the host Python AST. If parsing succeeds, it
+then calls \texttt{ConvertAST.convertModule} to convert that host AST into the
+project's smaller \texttt{PythonMinusMinus} AST. The resulting project AST is
+printed as output. Unfortunately the output is not pretty. The MLIR lowering
+step is left as the next planned step in the pipeline.
+
+Example input programs are located in \texttt{pmm/examples/}. The main example
+used for testing is:
+
+\begin{verbatim}
+pmm/examples/int_declarations.py
+\end{verbatim}
+
+The project can be built from the \texttt{pmm/} directory using:
+
+\begin{verbatim}
+./build_pmm.bash
+\end{verbatim}
+
+It can be run using:
+
+\begin{verbatim}
+./run_pmm.bash
+\end{verbatim}
+
+The executable defined by the Cabal file is \texttt{run-pmm}. The Cabal file
+requires \texttt{language-python == 0.6.0}. The \texttt{mlir-hs} library should
+also be present in the repository because \texttt{LowerMLIR.hs} was intended to
+lower the project AST into MLIR structures.
+
 \section{AI Use}
 \subsection{Use of AI}
 I used AI heavily for the following:
