@@ -141,9 +141,8 @@ What success would've looked like here is:
 \begin{enumerate}
 	\item Take my \texttt{Python--} AST.
 	\item Lower this AST to an AST that \texttt{mlir-hs} explicitly defined in its
-	      codebase.
+	      codebase by completing the file LowerMLIR.hs
 	\item Leverage the builder inside the project to automatically emit MLIR code.
-	\item Complete the MLIR AST converter.
 \end{enumerate}
 
 I stopped short at creating the MLIR AST converter partway.
@@ -166,9 +165,10 @@ The file \texttt{docs/planning/pythonmlir\_supported\_ops.py} gives concrete
 examples of the supported syntax and operations. These files define the input
 language used by the parser, AST conversion step, and MLIR lowering step.
 
-Limiting the Python subset makes the project easier to reason about. It avoids
-many dynamic Python features and focuses on typed variables, integer
-operations, expressions, and basic control flow.
+Limiting the Subset of Python which I would be compiling was necessary to keep
+my project appropriately scoped. It avoids many dynamic Python features and
+focuses on typed variables, integer operations, expressions, and basic control
+flow.
 
 \subsection{Example}
 \begin{lstlisting}[language=Python]
@@ -213,7 +213,6 @@ MLIR constructs.
 \section{Results}
 \subsection{What Works}
 Currently, I am able to take an AST of a script defined like in
-docs/planning/PythonMLIR--.md.
 
 The working parts of the project are:
 
