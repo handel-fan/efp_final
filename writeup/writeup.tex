@@ -40,10 +40,10 @@ frame=single
 \section{MLIR: An Introduction}
 \subsection{LLVM MLIR IR objects}
 This section briefly looks at what MLIR IR objects look like, and why they are
-important. In LLVM, MLIR is a intermediate representation between high-level
+important. In LLVM, MLIR is an intermediate representation between high-level
 source code and LLVMIR:
 
-\noindent Source Code (Python, C, C++, etc.) $\to$ MLIR $\to$ LLVMIR $\to$ Machine code
+\noindent Source Code (Python, C, C++, etc.) $\to$ MLIR $\to$ LLVMIR $\to$ machine code
 
 \noindent Some variants/dialects of MLIR:
 
@@ -86,7 +86,7 @@ module {
 \subsection{Why MLIR?}
 \begin{itemize}
 	\item \textbf{Multi-level abstraction}: MLIR allows different levels of
-	      lowering, allowing us to reason on different levels of representations
+	      lowering, allowing us to reason on different levels of representations.
 	      (tensor, cf are examples)
 
 	\item \textbf{Extensibility via dialects}: New domains can define custom
@@ -98,7 +98,6 @@ module {
 
 % ----------------------------
 \section{Why Use Haskell to Parse Python}
-\subsection{Motivation}
 
 \subsection{Motivation}
 
@@ -120,18 +119,18 @@ to describe the language structure without adding those cumbersome extra
 implementation details. I personally parsed a Language in C and found it very
 cumbersome compared to Haskell.
 \subsection{Parsing Strategy}
-My strategy here was to leverage the library `language-python`, which parser
-Python, and convert it into an AST Defined by the `language-python` itself.
+My strategy here was to leverage the library `language-python`, which parses
+Python, and convert it into an AST defined by the `language-python` itself.
 
 Next, I wrote a converter to take the `language-python` AST and create my own
 AST with all the operations I chose to support in Python, a much smaller subset
 of Python. (for simplicity)
 
-The file which Corresponds to this can be found under pmm/ConvertAST.hs. The
+The file which corresponds to this can be found under pmm/ConvertAST.hs. The
 AST which I convert to is pmm/AST.hs.
 
 \subsection{Mapping to MLIR}
-Lastly, my plan was to take this AST and lower it MLIR. I was planning to
+Lastly, my plan was to take this AST and lower it to MLIR. I was planning to
 leverage the library `mlir-hs` to do so.
 
 I didn't fully succeed here.
@@ -165,7 +164,7 @@ The file \texttt{docs/planning/pythonmlir\_supported\_ops.py} gives concrete
 examples of the supported syntax and operations. These files define the input
 language used by the parser, AST conversion step, and MLIR lowering step.
 
-Limiting the Subset of Python which I would be compiling was necessary to keep
+Limiting the subset of Python which I would be compiling was necessary to keep
 my project appropriately scoped. It avoids many dynamic Python features and
 focuses on typed variables, integer operations, expressions, and basic control
 flow.
@@ -201,12 +200,12 @@ I used AI heavily for the following:
 
 \subsection{Important statement about AI use}
 
-While I used AI heavily to Generate code, I never generated code and looked the
+While I used AI heavily to generate code, I never generated code and looked the
 other way. I always went through every line of code to understand both what the
 intention of the code was at a higher level, as well as what the language
 constructs actually were. I am confident in my ability to explain all of it.
 
-Furthermore, I used AI To dig deep into both Haskell language constructs and
+Furthermore, I used AI to dig deep into both Haskell language constructs and
 MLIR constructs.
 
 % ----------------------------
@@ -253,7 +252,7 @@ Some of the things I learned in this project are:
 	\item Deep dives on Haskell language constructs - monads, record syntax,
 
 	\item MLIR structure and operations: Operations, Regions, Blocks, Control Flow, how
-	      if, for, function calls, etc all actually work under the hood.
+	      if, for, function calls, etc. all actually work under the hood.
 
 	\item Terminators, block args, and other MLIR structural details.
 
