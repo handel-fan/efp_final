@@ -43,8 +43,9 @@ Brief overview of the project, goals, and motivation.
 % ----------------------------
 \section{MLIR: An Introduction}
 \subsection{LLVM MLIR IR objects}
-This section briefly looks at what MLIR IR objects look like, and why they are important.
-In LLVM, MLIR is a intermediate representation between high-level source code and LLVMIR:
+This section briefly looks at what MLIR IR objects look like, and why they are
+important. In LLVM, MLIR is a intermediate representation between high-level
+source code and LLVMIR:
 
 \noindent Source Code (Python, C, C++, etc.) $\to$ MLIR $\to$ LLVMIR $\to$ Machine code
 
@@ -85,7 +86,6 @@ module {
 	      \texttt{func}, \texttt{llvm}.
 \end{itemize}
 
-
 \subsection{Why MLIR?}
 \begin{itemize}
 	\item \textbf{Multi-level abstraction}: MLIR allows different levels of
@@ -103,35 +103,39 @@ module {
 \subsection{Motivation}
 Why not Python or C++ to parse Python?
 
-High school has algebraic types, and fluid composition.
-The type system and monadic operations themselves
-lend to easier parsing. Furthermore, types like `Either` and
-`Maybe` are very useful for error management in a fluid manner,
+High school has algebraic types, and fluid composition. The type system and
+monadic operations themselves lend to easier parsing. Furthermore, types like
+`Either` and `Maybe` are very useful for error management in a fluid manner,
 compared to how errors are managed and collected in imperative languages
 
-
 \subsection{Parsing Strategy}
-My strategy here was to leverage the library `language-python`,
-which parser Python, and convert it into an AST Defined by the
-`language-python` itself.
+My strategy here was to leverage the library `language-python`, which parser
+Python, and convert it into an AST Defined by the `language-python` itself.
 
-Next, I wrote a converter to take the `language-python` AST
-and create my own AST with all the operations I chose to support
-in Python, a much smaller subset of Python. (for simplicity)
-
-Lastly, my plan was to take this AST and lower it MLIR.
-
+Next, I wrote a converter to take the `language-python` AST and create my own
+AST with all the operations I chose to support in Python, a much smaller subset
+of Python. (for simplicity)
 
 \subsection{Mapping to MLIR}
-How the AST lowers into MLIR constructs.
+Lastly, my plan was to take this AST and lower it MLIR. I was planning to
+leverage the library `mlir-hs` to do so.
 
+I didn't fully succeed here.
+
+What success would've looked like here is:
+
+Taking my `Python--` AST and lowering this AST to an AST that mlir-hs
+explicitly defined in its codebase.
+
+Then my plan would have been to leverage the builder inside the project to
+automatically emit MLIR code.
+
+I stopped short at creating the MLIR AST converter.
 % ----------------------------
 \section{System Architecture}
 \subsection{Pipeline Overview}
-Python source $\rightarrow$ Haskell AST $\rightarrow$ MLIR AST $\rightarrow$ MLIR lowering.
-
-\subsection{Key Components}
-Parser, AST representation, lowering logic.
+Python source $\rightarrow$ Haskell AST $\rightarrow$ MLIR AST $\rightarrow$
+MLIR lowering.
 
 \subsection{Example}
 \begin{lstlisting}[language=Python]
@@ -151,29 +155,37 @@ z: int = x + y
 
 % ----------------------------
 \section{AI Use}
-\subsection{Motivation}
-How this system relates to AI workflows.
+\subsection{Use of AI}
+I used AI heavily for the following:
 
-\subsection{Compiler + AI Intersection}
-Optimization, model execution, or DSLs.
+Understanding Haskell language constructs as well as AST constructs and MLIR.
+Generating code to my specifications Helping with LaTeX for writing
 
-\subsection{Future Potential}
-Where this could go in ML systems or research.
+\subsection{Important statement about AI use}
+
+While I used AI heavily to Generate code, I never generated code and looked the
+other way. I always went through every line of code to understand both what the
+intention of the code was at a higher level, as well as what the language
+constructs actually were. I am confident in my ability to explain all of it.
+
+Furthermore, I used AI To dig deep into both Haskell language constructs and
+MLIR constructs.
 
 % ----------------------------
 \section{Results}
 \subsection{What Works}
-Supported features, successful lowering.
+Currently, I am able to take an AST of a script defined like in
+docs/planning/PythonMLIR--.md.
 
-\subsection{Limitations}
-What is not supported.
+\subsection{What I learned}
+Some of the things I learned in this project are:
 
-\subsection{Performance}
-(Optional) Any benchmarks or observations.
-
-% ----------------------------
-\section{Discussion}
-Trade-offs, lessons learned, design decisions.
+* How to convert and walk ASTs using Haskell. In this regard, I learned a lot about how
+* Deep dives on Haskell language constructs
+* MLIR structure and operations: Operations, Regions, Blocks, Control Flow,
+how if, for, function calls, etc all actually work under the hood. Terminators,
+block args, and much more.
+* How much more difficult a project is than it seems.
 
 % ----------------------------
 \section{Conclusion}
@@ -182,19 +194,6 @@ Summary and final thoughts.
 % ----------------------------
 \section{Future Work}
 Possible improvements and extensions.
-
-% ----------------------------
-\begin{thebibliography}{9}
-
-	\bibitem{mlir}
-	MLIR Documentation. \
-	\url{https://mlir.llvm.org/}
-
-	\bibitem{haskell}
-	Haskell Language Report. \
-	\url{https://www.haskell.org/}
-
-\end{thebibliography}
 
 \end{document}
 
